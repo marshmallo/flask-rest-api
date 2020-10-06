@@ -1,73 +1,88 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from random import randrange
 import os
 
-# Initialize App
+
+# Initialize the Application.
 app = Flask(__name__)
+# Set base dir magic variable.
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Database Setup
+# Setting up the Database.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
+# Set it to False otherwise it will give warning in console. In the future, that default will change to False.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Init db
+# Initialize the Database.
 db = SQLAlchemy(app)
-# Init marshmallow
+# Initialize  Marshmallow.
 ma = Marshmallow(app)
 
 
-# Product Class/Model
-class Product(db.Model):
+# This is Consumption Class/Model.
+class Consumption(db.Model):
+    # SQLAlchemy ORM, needs there to be at least one column denoted as a primary key column.
     id = db.Column(db.Integer, primary_key=True)
-    ip = db.Column(db.String(50), unique=True)
-    percentage_cpu_used = db.Column(db.Integer)
-    percentage_memory_used = db.Column(db.Integer)
+    percentage_cpu_used = db.Column(db.Integer)       # CPU Used
+    percentage_memory_used = db.Column(db.Integer)    # Memory Used
 
-    def __init__(self, ip, percentage_cpu_used, percentage_memory_used):
-        self.ip = ip
+    # Define Initializer.
+    def __init__(self, percentage_cpu_used, percentage_memory_used):
         self.percentage_cpu_used = percentage_cpu_used
         self.percentage_memory_used = percentage_memory_used
 
 
-# Product Schema
-class ProductSchema(ma.Schema):
+# Create Consumption Schema.
+class ConsumptionSchema(ma.Schema):
     class Meta:
-        # fields = ('id', 'percentage_cpu_used', 'percentage_memory_used')
-        fields = ('ip', 'percentage_cpu_used', 'percentage_memory_used')
+        # Define which all fields to show.
+        fields = ('percentage_cpu_used', 'percentage_memory_used')
 
 
-# Init Schema
-product_schema = ProductSchema()
-products_schema = ProductSchema(many=True)
+# Initialize the Schema.
+consumption_schema = ConsumptionSchema()
+consumptions_schema = ConsumptionSchema(many=True)    # Dealing with many items.
 
 
-# Create Product
+# Condition to check given Integer between 0-100.
+def expectedrange(input1):
+    if input1 in range(1, 100):
+        return 200
+    else:
+        return 500
+
+
+# This is the Metrics Ingestion Route.
 @app.route('/metrics', methods=['POST'])
-def add_product():
-    ip = request.json['ip']
+def ingest_metrics():
     percentage_cpu_used = request.json['percentage_cpu_used']
     percentage_memory_used = request.json['percentage_memory_used']
 
-    new_product = Product(ip, percentage_cpu_used, percentage_memory_used)
+    if expectedrange(percentage_cpu_used) == 200 and expectedrange(percentage_memory_used) == 200:
+        new_consumption = Consumption(percentage_cpu_used, percentage_memory_used)
 
-    db.session.add(new_product)
-    db.session.commit()
+        db.session.add(new_consumption)    # Adding Session.
+        db.session.commit()                # Commit to the Database.
 
-    return product_schema.jsonify(new_product)
+        return consumption_schema.jsonify(new_consumption), 200   # Returning 200 response if all OK.
+    else:
+        return "ERROR: Values should be between 0-100", 500       # Returning 500 response if something's WRONG.
 
 
-# Get All Products
+# This is Report Generation Route.
 @app.route('/report', methods=['GET'])
-def get_products():
-    all_products = Product.query.all()
-    result = products_schema.dump(all_products)
-    return jsonify(result)
+def generate_report():
+    all_consumptions = Consumption.query.all()             # Get all the data.
+    result = consumptions_schema.dump(all_consumptions)    # Dump all the data.
+    for consumption in result:
+        # Extract the sender's IP Address during the GET Request.
+        consumption.update({"ip": str(request.remote_addr)})
+    return jsonify(result), 200
 
 
-# Generate Database
+# Generate the Database.
 db.create_all()
 
-# Run the Server
+# Run the Server.
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
