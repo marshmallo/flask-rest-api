@@ -1,7 +1,7 @@
 # rest-api-assignment
 An API's app based on Flask and Flask Rest Framework.
 
-A REST API is an architectural style for an API that uses HTTP requests to access and use data. That data can be used to GET, PUT, POST and DELETE data types, commonly refers to CRUD operations.
+A REST API is an architectural style for an API that uses HTTP requests to access and use data. That data can be used to GET, PUT, POST and DELETE data types, commonly refers as CRUD operations.
 
 This project is a REST API server that ingests metrics from its clients and
 generates on-demand stats reports. This utilizes [Flask](https://flask.palletsprojects.com/en/1.1.x/), [SQLAlchemy](https://www.sqlalchemy.org/) and [Marshmallow](https://flask-marshmallow.readthedocs.io/en/latest/). When running the application, it creates a `db.sqlite` file in the project's root directory which is database file containing all the data. You can delete this file when the testing completes.
@@ -96,7 +96,7 @@ The API exposes the following endpoints:
         "percentage_memory_used": <integer between 0-100 >
     }
     ```
-    Sample curl requests
+    Sample curl requests:
     ```bash
     $ curl \
         -XPOST \
@@ -135,7 +135,7 @@ The API exposes the following endpoints:
         ...
     ]
     ```
-   Sample curl requests
+   Sample curl request:
     ```bash
     $ curl \
         -XGET \
