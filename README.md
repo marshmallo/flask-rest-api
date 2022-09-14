@@ -21,7 +21,7 @@ Follow these instructions to setup the project locally on your machine.
     ```
 2. Change to the project's root directory.
     ```bash
-    $ cd rest-api-assignment/
+    $ cd flask-rest-api/
     ```
 3. Create a virtual environment of name `.venv` in project's root directory. Use python version that you are using.
     ```bash
