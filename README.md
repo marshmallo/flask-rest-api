@@ -1,4 +1,4 @@
-# rest-api-assignment
+# flask-rest-api
 An API's app based on Flask and Flask Rest Framework.
 
 A REST API is an architectural style for an API that uses HTTP requests to access and use data. That data can be used to GET, PUT, POST and DELETE data types, commonly refers as CRUD operations.
